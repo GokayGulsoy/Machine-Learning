@@ -18,4 +18,4 @@ Repository for the CENG463 course that I have taken at IZTECH
 14. Introduction to Reinforcement Learning and Deep Learning
 15. Final Exam
 
-Textbooks can be found on: [Course textbooks 1](/Textbook/textbook.pdf)
+Textbooks can be found on: [Course textbook](Textbook/textbook.pdf)
