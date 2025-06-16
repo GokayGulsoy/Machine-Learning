@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beyond Supervised Learning: An Interactive Overview</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Visualization & Content Choices:
+        - Supervised Recap: Static text. Goal: Inform. Method: HTML paragraphs/lists. Interaction: None. Justification: Baseline knowledge recap.
+        - Unsupervised Learning:
+            - Intro: Contextual HTML paragraph.
+            - Core Idea/Goal: Static text. Goal: Inform.
+            - Analogies (Lego, Detective): Interactive toggles. Goal: Engage, Clarify. Method: HTML text revealed by JS. Justification: Makes analogies more discoverable.
+            - Key Tasks (Clustering, Dimensionality Reduction, Association): Interactive accordion/cards. Goal: Organize, Inform. Method: HTML text sections toggled by JS. Justification: Breaks down complex info.
+            - Clustering Example: PNG image with fallback. Goal: Illustrate. Method: HTML img.
+            - Why Useful: Static bullet list. Goal: Inform.
+        - Reinforcement Learning:
+            - Intro: Contextual HTML paragraph.
+            - Core Idea/Goal: Static text. Goal: Inform.
+            - RL Diagram: Simplified HTML/CSS representation. Goal: Illustrate. Method: Styled divs.
+            - Key Components (Agent, Env, etc.): Interactive accordion/cards. Goal: Organize, Inform. Method: HTML text sections toggled by JS.
+            - Analogies (Dog, Game): Interactive toggles. Goal: Engage, Clarify. Method: HTML text revealed by JS.
+            - Applications: Static bullet list. Goal: Inform.
+        - Comparison Table: Static HTML table. Goal: Compare. Method: HTML table. Justification: Direct port of report's clear comparison.
+        - No Chart.js is used as the report content is primarily textual and conceptual; HTML/JS interactions are sufficient for enhancing understanding. No SVG/Mermaid used.
+    -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF7; /* Warm Neutral Background */
+            color: #374151; /* coolGray-700 */
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+            border-bottom-width: 4px;
+            border-color: transparent;
+        }
+        .tab-button.active {
+            border-color: #0D9488; /* Teal-600 */
+            color: #0D9488; /* Teal-600 */
+            font-weight: 600;
+        }
+        .tab-button:hover:not(.active) {
+            border-color: #99F6E4; /* Teal-200 for hover */
+        }
+        .content-section {
+            background-color: #F3F4F6; /* coolGray-100 */
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .accordion-header {
+            cursor: pointer;
+            padding: 0.75rem 1rem;
+            background-color: #E5E7EB; /* coolGray-200 */
+            border-radius: 0.375rem;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .accordion-header:hover {
+            background-color: #D1D5DB; /* coolGray-300 */
+        }
+        .accordion-content {
+            display: none;
+            padding: 0.75rem 1rem;
+            border: 1px solid #E5E7EB; /* coolGray-200 */
+            border-top: none;
+            border-radius: 0 0 0.375rem 0.375rem;
+            margin-bottom: 0.5rem;
+        }
+        .accordion-content.show {
+            display: block;
+        }
+        .analogy-button {
+            background-color: #CCFBF1; /* Teal-100 */
+            color: #134E4A; /* Teal-800 */
+            border: 1px solid #5EEAD4; /* Teal-300 */
+        }
+        .analogy-button:hover {
+            background-color: #99F6E4; /* Teal-200 */
+        }
+        .analogy-content {
+            background-color: #F0FDFA; /* Teal-50 */
+            border-left: 4px solid #0D9488; /* Teal-600 */
+        }
+        .table-responsive {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #D1D5DB; /* coolGray-300 */
+            padding: 0.75rem;
+            text-align: left;
+        }
+        th {
+            background-color: #E5E7EB; /* coolGray-200 */
+        }
+        .rl-diagram-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border: 2px dashed #0D9488; /* Teal-600 */
+            border-radius: 0.5rem;
+            background-color: #F0FDFA; /* Teal-50 */
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        .rl-diagram-element {
+            background-color: #CCFBF1; /* Teal-100 */
+            color: #134E4A; /* Teal-800 */
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            text-align: center;
+            min-width: 120px;
+            border: 1px solid #5EEAD4; /* Teal-300 */
+        }
+        .rl-arrow {
+            font-size: 1.5rem; /* 24px */
+            color: #0D9488; /* Teal-600 */
+            font-weight: bold;
+        }
+        .clustering-image-container {
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .clustering-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            border: 1px solid #D1D5DB; /* coolGray-300 */
+        }
+
+        /* For Inter font */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-teal-700">Beyond Supervised Learning</h1>
+            <p class="text-xl text-gray-600 mt-2">An Interactive Overview of Machine Learning Paradigms</p>
+        </header>
+
+        <nav class="mb-8">
+            <ul class="flex flex-wrap justify-center border-b border-gray-300">
+                <li><button class="tab-button py-3 px-6 text-lg" onclick="showTab('supervised', event)" data-tabtarget="supervised">Supervised Recap</button></li>
+                <li><button class="tab-button py-3 px-6 text-lg" onclick="showTab('unsupervised', event)" data-tabtarget="unsupervised">Unsupervised Learning</button></li>
+                <li><button class="tab-button py-3 px-6 text-lg" onclick="showTab('reinforcement', event)" data-tabtarget="reinforcement">Reinforcement Learning</button></li>
+                <li><button class="tab-button py-3 px-6 text-lg" onclick="showTab('comparison', event)" data-tabtarget="comparison">Compare All</button></li>
+            </ul>
+        </nav>
+
+        <main>
+            <section id="supervised" class="tab-content content-section">
+                <h2 class="text-3xl font-semibold mb-6 text-teal-600">1. Quick Recap: Supervised Learning</h2>
+                <p class="mb-4 text-lg">This section provides a brief refresher on Supervised Learning, the paradigm you've primarily focused on so far. It's characterized by the use of labeled data to train models that can predict outputs for new, unseen inputs.</p>
+                
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="text-xl font-medium mb-1">The Core Idea</h3>
+                        <p>We have <strong>labeled data</strong>. The algorithm learns from input examples (<code>X</code>) and their corresponding correct outputs (<code>y</code>).</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-medium mb-1">The Goal</h3>
+                        <p>To learn a mapping function <code>f(X) = y</code> to predict outputs for new inputs.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-medium mb-1">Analogy</h3>
+                        <p>Think of it like learning with a teacher or a set of flashcards where you have both the question and the answer.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-medium mb-1">Examples We've Covered:</h3>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li><strong>Classification:</strong> Predicting a category (e.g., spam vs. not spam, image recognition).</li>
+                            <li><strong>Regression:</strong> Predicting a continuous value (e.g., house price prediction).</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="unsupervised" class="tab-content content-section hidden">
+                <h2 class="text-3xl font-semibold mb-6 text-teal-600">2. Unsupervised Learning: Finding Hidden Patterns</h2>
+                <p class="mb-6 text-lg">Welcome to Unsupervised Learning! In this paradigm, we deal with data that has no predefined labels. The main objective is to explore the data to find hidden patterns, structures, or insights directly from the input data itself. This is like being a data detective, uncovering what the data has to tell you on its own.</p>
+
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-medium mb-1">The Core Idea</h3>
+                        <p>We only have input data (<code>X</code>) and <strong>no corresponding output variables</strong>.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-medium mb-1">The Goal</h3>
+                        <p>The algorithm itself tries to learn the underlying structure, patterns, or distribution in the data.</p>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-medium mb-2">Analogies</h3>
+                        <div class="space-y-3">
+                            <button class="analogy-button w-full text-left p-3 rounded-md font-medium" onclick="toggleAnalogy('legoAnalogy')">Lego Brick Sorting Analogy &#9662;</button>
+                            <div id="legoAnalogy" class="analogy-content p-3 rounded-md hidden">
+                                Imagine being given a box of assorted Lego bricks with no instructions or pictures of what to build. You might start grouping them by color, by shape, or by size. You're finding structure without being told what the "right" structure is.
+                            </div>
+                            <button class="analogy-button w-full text-left p-3 rounded-md font-medium" onclick="toggleAnalogy('detectiveAnalogy')">Detective Work Analogy &#9662;</button>
+                            <div id="detectiveAnalogy" class="analogy-content p-3 rounded-md hidden">
+                                Think of a detective analyzing a pile of unsorted evidence, looking for connections and groupings without prior knowledge of who the culprit is.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-medium mb-2">Key Tasks</h3>
+                        <div class="accordion">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">Clustering <span>&#9662;</span></div>
+                            <div class="accordion-content">
+                                <p>Grouping similar data points together.</p>
+                                <p class="mt-1"><em>Example:</em> Segmenting customers based on purchasing behavior, grouping similar news articles.</p>
+                                <div class="clustering-image-container">
+                                    <img src="https://developers.google.com/static/machine-learning/clustering/images/clustering_example.png" 
+                                         alt="Clustering Example" 
+                                         class="clustering-image"
+                                         onerror="this.onerror=null; this.src='https://placehold.co/600x400/F0FDFA/134E4A?text=Clustering+Example+Not+Available';">
+                                    <p class="text-sm text-gray-600 mt-1">Visual example of data points grouped into clusters.</p>
+                                </div>
+                            </div>
+                            <div class="accordion-header" onclick="toggleAccordion(this)">Dimensionality Reduction <span>&#9662;</span></div>
+                            <div class="accordion-content">
+                                <p>Reducing the number of variables while preserving important information.</p>
+                                <p class="mt-1"><em>Example:</em> Simplifying complex datasets for visualization or to improve the performance of other ML algorithms.</p>
+                            </div>
+                            <div class="accordion-header" onclick="toggleAccordion(this)">Association Rule Mining <span>&#9662;</span></div>
+                            <div class="accordion-content">
+                                <p>Discovering rules that describe large portions of your data.</p>
+                                <p class="mt-1"><em>Example:</em> "Customers who buy X are also likely to buy Y" (market basket analysis).</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-medium mb-1">Why is it useful?</h3>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li>Exploring data where you don't have predefined labels.</li>
+                            <li>Finding inherent structures that might not be obvious.</li>
+                            <li>Preprocessing data for supervised learning tasks.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="reinforcement" class="tab-content content-section hidden">
+                <h2 class="text-3xl font-semibold mb-6 text-teal-600">3. Reinforcement Learning: Learning Through Trial and Error</h2>
+                <p class="mb-6 text-lg">Reinforcement Learning (RL) introduces a different way of thinking about machine learning. Here, an 'agent' learns to make decisions by interacting with an 'environment'. The agent receives 'rewards' or 'penalties' based on its actions, guiding it to learn the best strategy (or 'policy') to achieve a specific goal over time. It's all about learning from the consequences of actions.</p>
+                
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-medium mb-1">The Core Idea & Interaction Loop</h3>
+                        <p>An <strong>agent</strong> learns to make a sequence of decisions in an <strong>environment</strong> to achieve a <strong>goal</strong>, guided by <strong>rewards</strong> or <strong>penalties</strong>. This interaction typically follows a loop: <a href="https://upload.wikimedia.org/wikipedia/commons/1/1b/Reinforcement_learning_diagram.svg">https://upload.wikimedia.org/wikipedia/commons/1/1b/Reinforcement_learning_diagram.svg</a></p>
+                        
+                    </div>
+                     <div>
+                        <h3 class="text-xl font-medium mb-1">The Goal</h3>
+                        <p>The agent aims to learn the optimal <strong>policy</strong> (strategy) that maximizes the total expected reward over the long run.</p>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-medium mb-2">Key Components</h3>
+                        <div class="accordion">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">Agent <span>&#9662;</span></div>
+                            <div class="accordion-content"><p>The learner or decision-maker.</p></div>
+                            <div class="accordion-header" onclick="toggleAccordion(this)">Environment <span>&#9662;</span></div>
+                            <div class="accordion-content"><p>The world in which the agent operates.</p></div>
+                            <div class="accordion-header" onclick="toggleAccordion(this)">Action <span>&#9662;</span></div>
+                            <div class="accordion-content"><p>A move the agent can make in the environment.</p></div>
+                            <div class="accordion-header" onclick="toggleAccordion(this)">State <span>&#9662;</span></div>
+                            <div class="accordion-content"><p>The current situation or configuration of the environment.</p></div>
+                            <div class="accordion-header" onclick="toggleAccordion(this)">Reward (or Penalty) <span>&#9662;</span></div>
+                            <div class="accordion-content"><p>Feedback from the environment based on the agent's action. A positive reward encourages the action, a negative reward (penalty) discourages it.</p></div>
+                            <div class="accordion-header" onclick="toggleAccordion(this)">Policy <span>&#9662;</span></div>
+                            <div class="accordion-content"><p>The strategy or set of rules the agent learns to choose actions that maximize its cumulative reward over time.</p></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-medium mb-2">Analogies</h3>
+                        <div class="space-y-3">
+                            <button class="analogy-button w-full text-left p-3 rounded-md font-medium" onclick="toggleAnalogy('dogAnalogy')">Dog Training Analogy &#9662;</button>
+                            <div id="dogAnalogy" class="analogy-content p-3 rounded-md hidden">
+                                <ul class="list-disc list-inside space-y-1">
+                                   <li><strong>Agent:</strong> Dog</li>
+                                   <li><strong>Environment:</strong> Your living room/training area</li>
+                                   <li><strong>Action:</strong> Dog sits, stays, rolls over, etc.</li>
+                                   <li><strong>Reward:</strong> Treat, praise (if it does the right thing)</li>
+                                   <li><strong>Penalty (or lack of reward):</strong> No treat (if it does the wrong thing)</li>
+                                </ul>
+                                <p class="mt-2">The dog learns which actions lead to treats.</p>
+                            </div>
+                            <button class="analogy-button w-full text-left p-3 rounded-md font-medium" onclick="toggleAnalogy('gameAnalogy')">Video Game Analogy &#9662;</button>
+                            <div id="gameAnalogy" class="analogy-content p-3 rounded-md hidden">
+                               <ul class="list-disc list-inside space-y-1">
+                                   <li><strong>Agent:</strong> You (the player)</li>
+                                   <li><strong>Environment:</strong> The game world</li>
+                                   <li><strong>Action:</strong> Moving, jumping, shooting, etc.</li>
+                                   <li><strong>Reward:</strong> Points, advancing to the next level</li>
+                                   <li><strong>Penalty:</strong> Losing lives, game over</li>
+                               </ul>
+                                <p class="mt-2">You learn strategies that help you score higher and win.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-medium mb-1">Examples of Applications:</h3>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li>Robotics (e.g., teaching robots to walk or grasp objects).</li>
+                            <li>Game playing (e.g., AlphaGo mastering Go).</li>
+                            <li>Autonomous systems (e.g., self-driving car navigation).</li>
+                            <li>Personalized recommendations.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="comparison" class="tab-content content-section hidden">
+                <h2 class="text-3xl font-semibold mb-6 text-teal-600">4. Quick Comparison</h2>
+                <p class="mb-6 text-lg">This table provides a side-by-side comparison of the three machine learning paradigms we've discussed: Supervised, Unsupervised, and Reinforcement Learning. It highlights their key differences in terms of input data, primary goals, feedback mechanisms, and core analogies to help solidify your understanding.</p>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>Supervised Learning</th>
+                                <th>Unsupervised Learning</th>
+                                <th>Reinforcement Learning</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="font-semibold">Input Data</td>
+                                <td>Labeled data (<code>X</code>, <code>y</code>)</td>
+                                <td>Unlabeled data (<code>X</code>)</td>
+                                <td>No predefined dataset; agent interacts with environment</td>
+                            </tr>
+                            <tr>
+                                <td class="font-semibold">Goal</td>
+                                <td>Predict output based on input</td>
+                                <td>Discover patterns, structure, insights</td>
+                                <td>Learn optimal actions to maximize reward</td>
+                            </tr>
+                            <tr>
+                                <td class="font-semibold">Feedback</td>
+                                <td>Direct labels/correct answers</td>
+                                <td>No explicit feedback, learns from data structure</td>
+                                <td>Rewards/penalties from actions</td>
+                            </tr>
+                            <tr>
+                                <td class="font-semibold">Analogy</td>
+                                <td>Learning with a teacher/flashcards</td>
+                                <td>Sorting unorganized items, detective work</td>
+                                <td>Training a pet, playing a video game</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <footer class="text-center mt-12 py-6 border-t border-gray-300">
+            <p class="text-gray-600">&copy; <span id="currentYear"></span> Machine Learning Course. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        function showTab(tabId, eventObject) {
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.add('hidden'));
+            const targetContent = document.getElementById(tabId);
+            if (targetContent) {
+                 targetContent.classList.remove('hidden');
+            }
+
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => button.classList.remove('active'));
+
+            let buttonToActivate;
+            if (eventObject && eventObject.currentTarget) {
+                buttonToActivate = eventObject.currentTarget;
+            } else {
+                buttonToActivate = document.querySelector(`.tab-button[data-tabtarget="${tabId}"]`);
+            }
+
+            if (buttonToActivate) {
+                buttonToActivate.classList.add('active');
+            }
+        }
+
+        function toggleAccordion(headerElement) {
+            const content = headerElement.nextElementSibling;
+            const arrow = headerElement.querySelector('span');
+            const isOpening = content.style.display === "none" || content.style.display === "";
+            
+            // Close all other accordions in the same parent accordion container
+            if (isOpening) {
+                const allAccordionContents = headerElement.parentElement.querySelectorAll('.accordion-content');
+                allAccordionContents.forEach(accContent => {
+                    if (accContent !== content) {
+                        accContent.style.display = "none";
+                        const otherHeader = accContent.previousElementSibling;
+                        if (otherHeader && otherHeader.querySelector('span')) {
+                             otherHeader.querySelector('span').innerHTML = '&#9662;'; // Down arrow
+                        }
+                    }
+                });
+            }
+
+            if (isOpening) {
+                content.style.display = "block";
+                if (arrow) arrow.innerHTML = '&#9652;'; // Up arrow
+            } else {
+                content.style.display = "none";
+                if (arrow) arrow.innerHTML = '&#9662;'; // Down arrow
+            }
+        }
+        
+        function toggleAnalogy(analogyId) {
+            const content = document.getElementById(analogyId);
+            const button = content.previousElementSibling; 
+            const isOpening = content.classList.contains('hidden');
+            const arrowIndicator = isOpening ? '&#9652;' : '&#9662;'; 
+            
+            if (isOpening) {
+                content.classList.remove('hidden');
+            } else {
+                content.classList.add('hidden');
+            }
+            
+            const buttonText = button.textContent.replace(/[▼▲]$/, '').trim(); 
+            button.innerHTML = `${buttonText} ${arrowIndicator}`;
+        }
+
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            showTab('supervised'); 
+        });
+    </script>
+
+</body>
+</html>
